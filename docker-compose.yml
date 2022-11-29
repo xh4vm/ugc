@@ -1,0 +1,161 @@
+version: '3.8'
+
+x-base-service: &base_service
+  networks:
+    - ugc
+
+x-redis: &base_redis
+  <<: *base_service
+  image: redis:7.0-alpine
+  container_name: redis
+  restart: unless-stopped
+  ports:
+    - ${REDIS_PORT}:6379
+  healthcheck:
+    test: ["CMD", "redis-cli","ping"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+
+
+services:
+
+  nginx:
+    <<: *base_service
+    image: nginx:1.23.1-alpine
+    container_name: nginx
+    profiles: 
+      - dev_ugc
+    volumes:
+      - ./backend/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./backend/nginx/configs/producer_storage.conf:/etc/nginx/conf.d/producer_storage.conf:ro
+      - ./backend/nginx/static/errors:/var/www/errors/:ro
+      - ./backend/nginx/static/log/access_log:/var/log/nginx/access.log:rw
+      - ./backend/nginx/static/log/error_log:/var/log/nginx/error.log:rw
+    depends_on:
+      producer-storage:
+        condition: service_healthy
+    ports:
+      - ${PRODUCER_STORAGE_PORT}:${PRODUCER_STORAGE_PORT}
+
+  redis:
+    <<: *base_redis
+    profiles:
+      - dev_ugc
+    volumes:
+      - etube-redis-data:/data
+
+  producer-storage:
+    <<: *base_service
+    build: ./backend/producer_storage
+    container_name: producer-storage
+    env_file: .env
+    profiles:
+      - dev_ugc
+      - dev
+    volumes:
+      - ./backend/producer_storage:/opt/content
+    expose:
+      - ${PRODUCER_STORAGE_PORT}
+    healthcheck:
+      test: curl http://producer-storage:${PRODUCER_STORAGE_PORT} >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  zookeeper-kafka:
+    <<: *base_service
+    image: confluentinc/cp-zookeeper:7.3.0
+    hostname: zookeeper
+    container_name: zookeeper-kafka
+    profiles:
+      - dev_ugc
+      - dev
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    <<: *base_service
+    image: confluentinc/cp-server:7.3.0
+    hostname: broker
+    container_name: broker
+    profiles:
+      - dev_ugc
+      - dev
+    depends_on:
+      - zookeeper-kafka
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-kafka:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: broker
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+
+  schema-registry:
+    <<: *base_service
+    image: confluentinc/cp-schema-registry:7.3.0
+    hostname: schema-registry
+    container_name: schema-registry
+    profiles:
+      - dev_ugc
+      - dev
+    depends_on:
+      - broker
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  control-center:
+    <<: *base_service
+    image: confluentinc/cp-enterprise-control-center:7.3.0
+    hostname: control-center
+    container_name: control-center
+    profiles:
+      - dev_ugc
+      - dev
+    depends_on:
+      - broker
+      - schema-registry
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
+      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+
+
+networks:
+  ugc:
+    driver: bridge
+  
+
+volumes:
+  etube-redis-data:
