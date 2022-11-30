@@ -141,3 +141,4 @@ commands.md
 .env_local
 backend/auth/api/migrations
 modules/
+/olap_research/vertica/src/dataset/views_progress.csv

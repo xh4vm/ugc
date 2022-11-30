@@ -23,9 +23,13 @@ pip-install-pre-commit:
 build-dockers:
 	docker-compose --profile dev up --build
 
-.PHONY: interactive build docker ugc services 
+.PHONY: interactive build docker ugc services
 build-dockers-ugc:
 	docker-compose --profile dev_ugc up --build
+
+.PHONY: build vertica
+build-docker-vertica:
+	docker-compose --profile olap_research_vertica up --build
 
 .PHONY: run pre-commit all files
 pre-commit-files:
@@ -38,3 +42,4 @@ clean-pyc:
 .PHONY: clean all docker images
 clean-all-dockers:
 	T=$$(docker ps -q); docker stop $$T; docker rm $$T; docker container prune -f
+
