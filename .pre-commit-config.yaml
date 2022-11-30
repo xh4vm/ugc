@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pycqa/isort
-    rev: main
+    rev: 5.10.1
     hooks:
     -   id: isort
         name: Python import sorting
@@ -18,7 +18,7 @@ repos:
         language: python
         types: [python]
 -   repo: https://github.com/hadolint/hadolint
-    rev: master
+    rev: v2.12.1-beta
     hooks:
     -   id: hadolint-docker
         name: Lint Dockerfiles
