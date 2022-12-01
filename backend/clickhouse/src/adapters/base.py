@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from loguru import logger
+import backoff
+from clickhouse_driver.errors import NetworkError
 
 from adapters.enums import DBDialects
 
@@ -25,15 +26,13 @@ class BaseDBClient(ABC):
     def db_upgrade(self):
         pass
 
+    @backoff.on_exception(
+        backoff.expo, (ConnectionRefusedError, NetworkError), max_tries=10
+    )
     def execute(self, text: str):
         if not self.connection:
             self.connect()
-        r = None
-        try:
-            r = self.connection.execute(text)
-        except Exception as e:
-            logger.error(e)
-        return r
+        return self.connection.execute(text)
 
 
 @dataclass

@@ -35,11 +35,14 @@ with open(ROOT_DIR / "fake_data" / FILE_NAME, newline="") as csvfile:
     bench_start = datetime.datetime.now()
     for row in reader:
         frame = random.randint(1, 7200)
-        field_values += f"({total_rows}, {row[0]}, {row[1]}, {row[2]}, {frame}, now()), "
+        field_values += (
+            f"({total_rows}, {row[0]}, {row[1]}, {row[2]}, {frame}, now()), "
+        )
         if current_bench_size == BENCH_SIZE - 1:
             bench_sql_duration = insert_to_db(field_values[:-2])
-            bench_end = datetime.datetime.now()
-            logger.info(f'Total rows: {total_rows}. Bench: {bench_end - bench_start}; Only SQL: {bench_sql_duration}')
+            logger.info(
+                f"Total rows: {total_rows}. Bench: {datetime.datetime.now() - bench_start}; Only SQL: {bench_sql_duration}"
+            )
             sql_duration += bench_sql_duration
             current_bench_size = 0
             total_benches += 1
@@ -52,9 +55,11 @@ with open(ROOT_DIR / "fake_data" / FILE_NAME, newline="") as csvfile:
     if field_values:
         insert_to_db(field_values[:-2])
 
-end = datetime.datetime.now()
-delta = end-start
-print("Всего пачек:", total_benches)
-print("Всего строк:", total_rows)
-print(f'Общее время выполнения: {delta}')
-print(f'Только SQL: {sql_duration}')
+logger.success("------------------------------")
+logger.success("Все данные успешно загружены!")
+logger.success("------------------------------")
+
+logger.info("Всего пачек: %s" % total_benches)
+logger.info("Всего строк: %s" % total_rows)
+logger.info("Общее время выполнения: %s" % (datetime.datetime.now() - start))
+logger.info("Только SQL: %s" % sql_duration)

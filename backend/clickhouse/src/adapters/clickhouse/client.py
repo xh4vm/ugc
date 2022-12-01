@@ -2,6 +2,7 @@ import time
 from dataclasses import dataclass
 from typing import Type
 
+import backoff
 from clickhouse_driver import Client
 from loguru import logger
 
@@ -23,9 +24,8 @@ class ClickHouseClient(BaseDBClient):
         return f"{self.host}{port}"
 
     def db_exists(self):
-        r = self.execute("SHOW DATABASES") or []
-        for item in r:
-            if item[0] == self.db_name:
+        for item in self.execute("SHOW DATABASES") or []:
+            if len(item) > 0 and item[0] == self.db_name:
                 return True
         return False
 

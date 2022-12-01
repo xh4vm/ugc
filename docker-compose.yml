@@ -163,12 +163,13 @@ services:
       PORT: 9021
 
   zookeeper-clickhouse:
-    image: zookeeper:3.8
+    image: bitnami/zookeeper:3.8.0
     <<: *base-profile-clickhouse
     environment:
-      ZOOKEEPER_CLIENT_PORT: ${CH_ZOOKEEPER_CLIENT_PORT}
+      ZOO_PORT_NUMBER: ${CH_ZOO_PORT_NUMBER}
+      ALLOW_ANONYMOUS_LOGIN: 'yes'
     volumes:
-      - ./backend/clickhouse/docker/zk-config/zoo.cfg:/conf/zoo.cfg
+      - ch_zoo_data:/bitnami/zookeeper
 
   clickhouse-node1:
     <<: *base-clickhouse-node
@@ -222,6 +223,7 @@ networks:
 
 volumes:
   etube-redis-data:
+  ch_zoo_data:
   ch_data_node1:
   ch_data_node2:
   ch_data_node3:
