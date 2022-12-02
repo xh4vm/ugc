@@ -5,7 +5,7 @@ from modules.auth.src.exceptions.access import AccessException
 from src.core.config import service_logger
 
 
-async def auth_dependency_handler() -> None:
+async def error_handler() -> None:
     try:
         yield
     except AccessException as access_exception:
