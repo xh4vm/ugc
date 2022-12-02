@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ugc"
+version = "0.1.0"
+description = ""
+authors = ["xczdenis", "Kariyma", "xh4vm"]
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.build.dependencies]
+
+
+[tool.poetry.group.pre-commit.dependencies]
+flake8 = ">=4.0.0"
+pre-commit = ">=2.19.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
