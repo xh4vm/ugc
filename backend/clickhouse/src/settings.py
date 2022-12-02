@@ -8,6 +8,14 @@ BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 
+class OLAPResearchSettings(BaseSettings):
+    OLAP_RESEARCH_QUERIES_PATH: str = ""
+
+    class Config:
+        env_file = os.path.join(ROOT_DIR, ".env")
+        env_file_encoding = "utf-8"
+
+
 class CHSettings(BaseSettings):
     CH_CLUSTER_NAME: str
     CH_DB_NAME: str
@@ -29,3 +37,4 @@ class CHSettings(BaseSettings):
 
 
 ch_settings = CHSettings()
+olap_research_settings = OLAPResearchSettings()

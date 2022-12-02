@@ -1,36 +1,31 @@
 import datetime
+import json
 from pathlib import Path
 
-from adapters.clickhouse.client import ClickHouseClient
+from loguru import logger
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+from adapters.clickhouse.client import ClickHouseClient
+from settings import olap_research_settings
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 db_client = ClickHouseClient(host="localhost", port="9000")
 
 
-def run_query(query):
-    print(query)
+def run_query(query_object):
+    logger.info("Запрос: %s" % query_object.get("name"))
+    logger.info("Текст: %s" % query_object.get("query")[:120])
     start = datetime.datetime.now()
-    r = db_client.execute(query)
-    print("result:", r)
-    print("time:", datetime.datetime.now() - start, '\n')
+    r = db_client.execute(query_object.get("query"))
+    logger.info("result: %s" % str(r))
+    logger.info("time: %s" % str(datetime.datetime.now() - start))
 
 
-run_query(
-    """SELECT COUNT(*) FROM views_progress"""
-)
-run_query(
-    """SELECT movie_id, COUNT(*) movie_count FROM views_progress GROUP BY movie_id ORDER BY movie_count DESC LIMIT 20"""
-)
-run_query(
-    """SELECT COUNT(*) FROM (SELECT movie_id, COUNT(*) movie_count FROM views_progress GROUP BY movie_id) as view_movie_counter WHERE movie_count<10"""
-)
-run_query(
-    """SELECT movie_id, sum(movie_frame) as sum_movie_frame FROM views_progress GROUP BY movie_id ORDER BY sum_movie_frame DESC LIMIT 20"""
-)
-run_query(
-    """SELECT user_id, count(*) as movies_count FROM (SELECT DISTINCT user_id, movie_id FROM views_progress GROUP BY user_id, movie_id) as view_user_movie GROUP BY user_id ORDER BY movies_count DESC LIMIT 20"""
-)
-run_query(
-    """SELECT user_id, SUM(max_user_movie_frame) as total_user_movies_frame FROM (SELECT DISTINCT user_id, movie_id, MAX(movie_frame) as max_user_movie_frame FROM views_progress GROUP BY user_id, movie_id) as view_user_movie GROUP BY user_id ORDER BY total_user_movies_frame DESC LIMIT 20"""
-)
+queries_path = olap_research_settings.OLAP_RESEARCH_QUERIES_PATH
+if queries_path.startswith("/"):
+    queries_path = queries_path[1:]
+
+with open(ROOT_DIR / queries_path) as f:
+    queries = json.load(f)
+    for query in queries:
+        run_query(query)
