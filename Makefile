@@ -1,4 +1,3 @@
-# copypasta from https://github.com/xczdenis/movies/blob/main/Makefile#L39
 # define standard colors
 ifneq (,$(findstring xterm,${TERM}))
 	BLACK        := $(shell printf "\033[30m")
@@ -22,7 +21,6 @@ else
 	RESET        := ""
 endif
 
-# copypasta from https://github.com/xczdenis/movies/blob/main/Makefile#L90
 define log
 	@echo ""
 	@echo "${WHITE}----------------------------------------${RESET}"
