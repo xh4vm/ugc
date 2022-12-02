@@ -13,18 +13,16 @@ from adapters.enums import DBDialects
 class BaseDBClient(ABC):
     host: str
     port: str = ""
-    db_name: str = ""
-    cluster_name: str = ""
-    dialect: str = ""
     connection: Any = None
 
     @abstractmethod
     def connect(self):
         pass
 
-    @abstractmethod
-    def db_upgrade(self):
-        pass
+    @property
+    def uri(self):
+        port = f":{self.port}" if self.port else ""
+        return f"{self.host}{port}"
 
     @backoff.on_exception(
         backoff.expo, (ConnectionRefusedError, NetworkError), max_tries=10
@@ -36,8 +34,15 @@ class BaseDBClient(ABC):
 
 
 @dataclass
-class BaseDB(ABC):
-    clients: list[BaseDBClient]
+class BaseDBMigrator(ABC):
+    client: BaseDBClient
+    dialect: str = ""
+    db_name: str = ""
+    cluster_name: str = ""
+
+    @abstractmethod
+    def db_upgrade(self):
+        pass
 
 
 @dataclass

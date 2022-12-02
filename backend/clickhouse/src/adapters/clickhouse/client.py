@@ -7,7 +7,7 @@ from clickhouse_driver import Client
 from loguru import logger
 
 from adapters import models
-from adapters.base import BaseDBClient, Model
+from adapters.base import Model, BaseDBClient, BaseDBMigrator
 from adapters.enums import DBDialects
 
 MODELS_MODULE_NAME = models.__name__
@@ -15,24 +15,26 @@ MODELS_MODULE_NAME = models.__name__
 
 @dataclass
 class ClickHouseClient(BaseDBClient):
-    dialect: str = DBDialects.CLICKHOUSE
-
     def connect(self):
         self.connection = Client(host=self.host, port=self.port)
 
-    @property
-    def uri(self):
-        port = f":{self.port}" if self.port else ""
-        return f"{self.host}{port}"
+
+@dataclass
+class ClickHouseMigrator(BaseDBMigrator):
+    dialect: str = DBDialects.CLICKHOUSE
+    db_name: str = ""
+    cluster_name: str = ""
 
     def db_exists(self):
-        for item in self.execute("SHOW DATABASES") or []:
+        for item in self.client.execute("SHOW DATABASES") or []:
             if len(item) > 0 and item[0] == self.db_name:
                 return True
         return False
 
     def db_healthy(self, timeout: int = 15):
-        logger.info("Waiting for db '%s' on host '%s'" % (self.db_name, self.uri))
+        logger.info(
+            "Waiting for db '%s' on host '%s'" % (self.db_name, self.client.uri)
+        )
         n = 0
         while not self.db_exists() and n < timeout:
             time.sleep(1)
@@ -41,13 +43,15 @@ class ClickHouseClient(BaseDBClient):
 
     def db_upgrade(self):
         if self.db_healthy():
-            logger.info("DB '%s' is available on host '%s'" % (self.db_name, self.uri))
+            logger.info(
+                "DB '%s' is available on host '%s'" % (self.db_name, self.client.uri)
+            )
             tables = self._get_tables()
             for table in tables:
                 self.create_table(self._get_db_for_table(table), table)
         else:
             logger.error(
-                "Database '%s' is unavailable on '%s'" % (self.db_name, self.uri)
+                "Database '%s' is unavailable on '%s'" % (self.db_name, self.client.uri)
             )
 
     def create_table(self, db: str, table: Type[Model]):
@@ -60,7 +64,7 @@ class ClickHouseClient(BaseDBClient):
                 extra_args=table_instance.get_sql_args(self.cluster_name),
             )
         )
-        self.execute(query)
+        self.client.execute(query)
 
     @classmethod
     def _is_table(cls, member):

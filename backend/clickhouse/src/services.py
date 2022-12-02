@@ -1,12 +1,14 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from adapters.base import BaseDBClient
+from adapters.base import BaseDBMigrator
 
 
 @dataclass
 class DBService:
-    clients: list[BaseDBClient]
+    db_migrators: list[BaseDBMigrator] = field(default_factory=lambda: [])
 
     def db_upgrade(self):
-        for client in self.clients:
-            client.db_upgrade()
+        for migrator in self.db_migrators:
+            migrator.db_upgrade()
+
+
