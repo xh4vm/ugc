@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc musl-dev li
 FROM python:3.10-slim
 
 COPY --from=producer-storage-builder /opt /opt
-COPY --from=producer-storage-builder /usr/lib/aarch64-linux-gnu/ /usr/lib/aarch64-linux-gnu/
+COPY --from=producer-storage-builder /usr/lib/ /usr/lib/
 ENV PYTHONPATH "/opt/content/modules/auth/src/:/opt/content/modules/auth/src:/opt/content/modules/auth/src/messages"
 
 WORKDIR /opt/content

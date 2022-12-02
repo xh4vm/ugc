@@ -23,13 +23,9 @@ pip-install-pre-commit:
 build-dockers:
 	docker-compose --profile dev up --build
 
-.PHONY: interactive build docker ugc services
+.PHONY: interactive build docker ugc services 
 build-dockers-ugc:
 	docker-compose --profile dev_ugc up --build
-
-.PHONY: build vertica
-build-docker-vertica:
-	docker-compose --profile olap_research_vertica up --build
 
 .PHONY: run pre-commit all files
 pre-commit-files:
@@ -43,3 +39,18 @@ clean-pyc:
 clean-all-dockers:
 	T=$$(docker ps -q); docker stop $$T; docker rm $$T; docker container prune -f
 
+.PHONY: interactive build docker clickhouse services
+build-dockers-ch:
+	docker-compose --profile clickhouse up -d --build
+
+.PHONY: upgrade clickhouse's database schema
+ch-db-upgrade:
+	python backend/clickhouse/src/db_upgrade.py
+
+.PHONY: load fake-data into clickhouse
+ch-load:
+	python backend/clickhouse/src/load_data.py
+
+.PHONY: execute queries for clickhouse
+ch-benchmark:
+	python backend/clickhouse/src/benchmarks.py
