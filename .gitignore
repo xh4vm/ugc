@@ -1,3 +1,5 @@
+**/clickhouse/fake_data/*.csv
+
 # Byte-compiled / optimized / DLL files
 *__pycache__
 *.py[cod]
@@ -140,4 +142,3 @@ commands.md
 *._cache
 .env_local
 backend/auth/api/migrations
-modules/

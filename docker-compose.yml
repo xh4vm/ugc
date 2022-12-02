@@ -12,10 +12,27 @@ x-redis: &base_redis
   ports:
     - ${REDIS_PORT}:6379
   healthcheck:
-    test: ["CMD", "redis-cli","ping"]
+    test: [ "CMD", "redis-cli","ping" ]
     interval: 30s
     timeout: 10s
     retries: 5
+
+x-base-profile-clickhouse: &base-profile-clickhouse
+  profiles:
+    - clickhouse
+
+x-base-clickhouse-node: &base-clickhouse-node
+  image: yandex/clickhouse-server:21.3
+  env_file: .env
+  <<: *base-profile-clickhouse
+  depends_on:
+    - zookeeper-clickhouse
+
+x-base-kafka: &base_kafka
+  <<: *base_service
+  image: confluentinc/cp-server:7.3.0
+  depends_on:
+    - zookeeper-kafka
 
 
 services:
@@ -24,7 +41,7 @@ services:
     <<: *base_service
     image: nginx:1.23.1-alpine
     container_name: nginx
-    profiles: 
+    profiles:
       - dev_ugc
     volumes:
       - ./backend/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -52,7 +69,6 @@ services:
     env_file: .env
     profiles:
       - dev_ugc
-      - dev
     volumes:
       - ./backend/producer_storage:/opt/content
     expose:
@@ -70,45 +86,56 @@ services:
     container_name: zookeeper-kafka
     profiles:
       - dev_ugc
-      - dev
     ports:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-  broker:
-    <<: *base_service
-    image: confluentinc/cp-server:7.3.0
-    hostname: broker
-    container_name: broker
+  kafka01:
+    <<: *base_kafka
+    hostname: kafka01
+    container_name: kafka01
+    env_file: .env
     profiles:
       - dev_ugc
-      - dev
-    depends_on:
-      - zookeeper-kafka
-    ports:
-      - "9092:9092"
-      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-kafka:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: broker
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_LISTENERS: LISTENER_BOOTSTRAP://kafka01:29092,LISTENER_BROKER://kafka01:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_BOOTSTRAP://kafka01:29092,LISTENER_BROKER://kafka01:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOOTSTRAP:PLAINTEXT,LISTENER_BROKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_BOOTSTRAP
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka01:29092
+
+  kafka02:
+    <<: *base_kafka
+    hostname: kafka02
+    container_name: kafka02
+    env_file: .env
+    profiles:
+      - dev_ugc
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENERS: LISTENER_BOOTSTRAP://kafka02:29092,LISTENER_BROKER://kafka02:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_BOOTSTRAP://kafka02:29092,LISTENER_BROKER://kafka02:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOOTSTRAP:PLAINTEXT,LISTENER_BROKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_BOOTSTRAP
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka01:29092
+
+  kafka03:
+    <<: *base_kafka
+    hostname: kafka03
+    container_name: kafka03
+    env_file: .env
+    profiles:
+      - dev_ugc
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENERS: LISTENER_BOOTSTRAP://kafka03:29092,LISTENER_BROKER://kafka03:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_BOOTSTRAP://kafka03:29092,LISTENER_BROKER://kafka03:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOOTSTRAP:PLAINTEXT,LISTENER_BROKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_BOOTSTRAP
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka01:29092
 
   schema-registry:
     <<: *base_service
@@ -117,14 +144,13 @@ services:
     container_name: schema-registry
     profiles:
       - dev_ugc
-      - dev
     depends_on:
-      - broker
+      - kafka01
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka01:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
   control-center:
@@ -134,16 +160,13 @@ services:
     container_name: control-center
     profiles:
       - dev_ugc
-      - dev
     depends_on:
-      - broker
+      - kafka01
       - schema-registry
     ports:
       - "9021:9021"
     environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
-      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
-      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka01:29092'
       CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
@@ -151,11 +174,69 @@ services:
       CONFLUENT_METRICS_TOPIC_REPLICATION: 1
       PORT: 9021
 
+  zookeeper-clickhouse:
+    image: bitnami/zookeeper:3.8.0
+    <<: *base-profile-clickhouse
+    environment:
+      ZOO_PORT_NUMBER: ${CH_ZOO_PORT_NUMBER}
+      ALLOW_ANONYMOUS_LOGIN: 'yes'
+    volumes:
+      - ch_zoo_data:/bitnami/zookeeper
+
+  clickhouse-node1:
+    <<: *base-clickhouse-node
+    volumes:
+      - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
+      - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
+      - ./backend/clickhouse/docker/config/node1:/etc/clickhouse-server
+      - ch_data_node1:/var/lib/clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+  clickhouse-node2:
+    <<: *base-clickhouse-node
+    volumes:
+      - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
+      - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
+      - ./backend/clickhouse/docker/config/node2:/etc/clickhouse-server
+      - ch_data_node2:/var/lib/clickhouse
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+
+  clickhouse-node3:
+    <<: *base-clickhouse-node
+    volumes:
+      - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
+      - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
+      - ./backend/clickhouse/docker/config/node3:/etc/clickhouse-server
+      - ch_data_node3:/var/lib/clickhouse
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+
+  clickhouse-node4:
+    <<: *base-clickhouse-node
+    volumes:
+      - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
+      - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
+      - ./backend/clickhouse/docker/config/node4:/etc/clickhouse-server
+      - ch_data_node4:/var/lib/clickhouse
+    ports:
+      - "8126:8123"
+      - "9003:9000"
+
 
 networks:
   ugc:
     driver: bridge
-  
+
 
 volumes:
   etube-redis-data:
+  ch_zoo_data:
+  ch_data_node1:
+  ch_data_node2:
+  ch_data_node3:
+  ch_data_node4:

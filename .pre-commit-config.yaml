@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pycqa/isort
-    rev: main
+    rev: 5.10.1
     hooks:
     -   id: isort
         name: Python import sorting
@@ -13,12 +13,12 @@ repos:
     -   id: flake8
         name: Lint Python files
         description: wemake-python-styleguide enforcement
-        entry: ./venv/bin/flake8
+        entry:  ./olap_research/vertica/src/.venv/bin/flake8
         args: ["--config=setup.cfg", "--max-line-length=119"]
         language: python
         types: [python]
 -   repo: https://github.com/hadolint/hadolint
-    rev: master
+    rev: v2.12.1-beta
     hooks:
     -   id: hadolint-docker
         name: Lint Dockerfiles
