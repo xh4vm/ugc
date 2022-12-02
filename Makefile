@@ -86,3 +86,19 @@ clean-pyc:
 clean-all-dockers:
 	$(call log,Run stop remove and cleaning memory)
 	T=$$(docker ps -q); docker stop $$T; docker rm $$T; docker container prune -f
+
+.PHONY: interactive build docker clickhouse services
+build-dockers-ch:
+	docker-compose --profile clickhouse up -d --build
+
+.PHONY: upgrade clickhouse's database schema
+ch-db-upgrade:
+	python backend/clickhouse/src/db_upgrade.py
+
+.PHONY: load fake-data into clickhouse
+ch-load:
+	python backend/clickhouse/src/load_data.py
+
+.PHONY: execute queries for clickhouse
+ch-benchmark:
+	python backend/clickhouse/src/benchmarks.py
