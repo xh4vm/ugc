@@ -10,6 +10,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 class OLAPResearchSettings(BaseSettings):
     OLAP_RESEARCH_QUERIES_PATH: str = ""
+    OLAP_RESEARCH_LOAD_BENCH_SIZE: int = 1000000
 
     class Config:
         env_file = os.path.join(ROOT_DIR, ".env")
