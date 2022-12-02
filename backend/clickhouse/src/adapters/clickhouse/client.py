@@ -1,14 +1,16 @@
+import inspect
 import time
 from dataclasses import dataclass
 from typing import Type
 
-import backoff
 from clickhouse_driver import Client
 from loguru import logger
 
 from adapters import models
 from adapters.base import BaseDBClient, Model
 from adapters.enums import DBDialects
+
+MODELS_MODULE_NAME = models.__name__
 
 
 @dataclass
@@ -40,8 +42,9 @@ class ClickHouseClient(BaseDBClient):
     def db_upgrade(self):
         if self.db_healthy():
             logger.info("DB '%s' is available on host '%s'" % (self.db_name, self.uri))
-            self.create_table(self.db_name, models.View)
-            self.create_table("default", models.DistributedView)
+            tables = self._get_tables()
+            for table in tables:
+                self.create_table(self._get_db_for_table(table), table)
         else:
             logger.error(
                 "Database '%s' is unavailable on '%s'" % (self.db_name, self.uri)
@@ -58,3 +61,18 @@ class ClickHouseClient(BaseDBClient):
             )
         )
         self.execute(query)
+
+    @classmethod
+    def _is_table(cls, member):
+        return (
+            inspect.isclass(member)
+            and member.__module__ == MODELS_MODULE_NAME
+            and Model in inspect.getmro(member)
+        )
+
+    def _get_tables(self):
+        tables = [item[1] for item in inspect.getmembers(models, self._is_table)]
+        return sorted(tables, key=lambda x: x().is_distributed())
+
+    def _get_db_for_table(self, model):
+        return "default" if model().is_distributed() else self.db_name

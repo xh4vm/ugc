@@ -57,6 +57,10 @@ class Model:
         return f"({sql_fields[:-2]})"
 
     def get_sql_args(self, cluster: str = ""):
+        keys_to_remove = ("is_distributed",)
+        for key in keys_to_remove:
+            if key in self.__table_args__:
+                del self.__table_args__[key]
         args = ""
         for k, v in self.__table_args__.items():
             args += f"{k} {v} "
@@ -66,6 +70,9 @@ class Model:
             args = args.replace(item[0], item[1])
 
         return args.strip()
+
+    def is_distributed(self):
+        return self.__table_args__.get("is_distributed", False)
 
 
 @dataclass
