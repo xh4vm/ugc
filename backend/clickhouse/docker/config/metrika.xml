@@ -71,7 +71,7 @@
         <zookeeper>
             <node index="1">
                 <host>zookeeper-clickhouse</host>
-                <port from_env="CH_ZOOKEEPER_CLIENT_PORT" />
+                <port from_env="CH_ZOO_PORT_NUMBER" />
             </node>
         </zookeeper>
 
