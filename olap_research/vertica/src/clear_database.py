@@ -4,9 +4,9 @@ from vertica_worker.vertica_worker import VerticaSaver, conn_context_vertica
 
 def main():
     with (
-        conn_context_vertica(SETTINGS.vertica.dict()) as connection
+        conn_context_vertica(SETTINGS.VERTICA.dict()) as connection
     ):
-        for table_name in SETTINGS.tables.keys():
+        for table_name in SETTINGS.TABLES.keys():
             VerticaSaver(connection).execute_sql_command(""" DROP TABLE {0};""".format(table_name))
 
 

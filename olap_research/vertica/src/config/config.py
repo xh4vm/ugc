@@ -1,16 +1,16 @@
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 
 
 class Vertica(BaseSettings):
     """Class Vertica settings."""
 
-    host: str = '127.0.0.1'
-    port: int = 5433
-    user: str = 'dbadmin'
-    password: str = ''
-    database: str = 'docker'
-    autocommit: bool = True
+    host: str = Field('127.0.0.1')
+    port: int = Field(5433)
+    user: str = Field('dbadmin')
+    password: str = Field('')
+    database: str = Field('docker')
+    autocommit: bool = Field(True)
 
     class Config:
         env_prefix = 'VERTICA_'
@@ -20,16 +20,16 @@ class Vertica(BaseSettings):
 class Settings(BaseSettings):
     """Class main settings."""
 
-    vertica = Vertica().parse_obj(Vertica().dict())
-    dataset_folder: str
-    ddl_file: str
-    truncate_table: bool = False
-    create_table: bool = True
-    batch_size: int = 10
-    dataset_file_ext: str = 'csv'
-    dataset_data_skip_row: int = 1
-    dataset_data_deliver: str = ','
-    tables: dict = {
+    VERTICA = Vertica().parse_obj(Vertica().dict())
+    DATASET_FOLDER: str
+    DDL_FILE: str
+    TRUNCATE_TABLE: bool = False
+    CREATE_TABLE: bool = True
+    BATCH_SIZE: int = 10
+    DATASET_FILE_EXT: str = 'csv'
+    DATASET_DATA_SKIP_ROW: int = 1
+    DATASET_DATA_DELIVER: str = ','
+    TABLES: dict = {
         'views_progress': {
             'names': ('user_id', 'movie_id', 'movie_frame', 'created'),
             'types': {0: str, 1: str, 2: float, 3: int},
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
 SETTINGS = Settings()
 
-sql_query = {
+SQL_QUERY = {
     'top_20_movie_pop': """
     SELECT movie_id, COUNT(*) movie_count FROM views_progress GROUP BY movie_id ORDER BY movie_count DESC LIMIT 20;
     """,

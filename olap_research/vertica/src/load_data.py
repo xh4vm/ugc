@@ -19,39 +19,40 @@ def load_data_to_vertica(conn: Connection):
 
     vertica_saver = VerticaSaver(
         conn,
-        SETTINGS.tables,
-        SETTINGS.truncate_table,
-        SETTINGS.batch_size,
+        SETTINGS.TABLES,
+        SETTINGS.TRUNCATE_TABLE,
+        SETTINGS.BATCH_SIZE,
+        SETTINGS.VERTICA.dict(),
     )
 
     dataset_loader = DatasetLoader(
-        SETTINGS.batch_size,
-        SETTINGS.dataset_folder,
-        SETTINGS.dataset_file_ext,
-        SETTINGS.dataset_data_deliver,
-        SETTINGS.dataset_data_skip_row,
+        SETTINGS.BATCH_SIZE,
+        SETTINGS.DATASET_FOLDER,
+        SETTINGS.DATASET_FILE_EXT,
+        SETTINGS.DATASET_DATA_DELIVER,
+        SETTINGS.DATASET_DATA_SKIP_ROW,
     )
 
     # Create tables
-    if SETTINGS.create_table:
-        sql = open(SETTINGS.ddl_file, "r").read()
+    if SETTINGS.CREATE_TABLE:
+        sql = open(SETTINGS.DDL_FILE, "r").read()
         vertica_saver.execute_sql_command(sql)
         vertica_saver.connection.commit()
 
-    for table_name, value in SETTINGS.tables.items():
+    for table_name, value in SETTINGS.TABLES.items():
 
-        if not dataset_loader.load_one_file(table_name, value['types']):
+        if not dataset_loader.prepare_to_loading(table_name, value['types']):
             logger.error(dataset_loader.error)
             continue
 
-        if SETTINGS.truncate_table:
-            if not vertica_saver.truncate_table(table_name):
-                break
+        if SETTINGS.TRUNCATE_TABLE and not vertica_saver.truncate_table(table_name):
+            logger.error(vertica_saver.error)
+            break
 
         batch_data_generator = dataset_loader.load_batch()
         for batch_number, batch_data in enumerate(batch_data_generator, 1):
             data_to_load = transform_data(batch_data)
-            logger.info('Пачка №{0} {1}'.format(batch_number, len(batch_data)))
+            logger.info('Пачка №{0}'.format(batch_number))
             if not vertica_saver.save_table_to_vertica(table_name, data_to_load):
                 logger.error(vertica_saver.error)
                 break
@@ -61,7 +62,7 @@ def load_data_to_vertica(conn: Connection):
 
 def main():
     with (
-        conn_context_vertica(SETTINGS.vertica.dict()) as connection
+        conn_context_vertica(SETTINGS.VERTICA.dict()) as connection
     ):
         sql_time = load_data_to_vertica(connection)
         logger.info('Время выполнения SQL: {0}s'.format(sql_time))

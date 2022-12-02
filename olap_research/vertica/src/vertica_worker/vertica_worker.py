@@ -1,21 +1,23 @@
-import logging
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 
+import backoff
 import vertica_python
+from loguru import logger
 from utility.utility import get_time
 from vertica_python import Connection, DatabaseError, OperationalError
 
 
-class VerticaSaver():
+class VerticaSaver:
     sql_time = timedelta(0)
     """Class for work with Vertica."""
 
     def __init__(
             self, connection: Connection,
-            tables: dict = {},
+            tables: dict = None,
             truncate: bool = True,
             batch_size: int = 1000,
+            connect_params: dict = None,
     ):
         """Init class object.
 
@@ -31,39 +33,49 @@ class VerticaSaver():
         self.truncate = truncate
         self.tables = tables
         self.error = None
+        self.connect_params = connect_params
 
+    def connect(self):
+        self.connection = vertica_python.connect(**self.connect_params)
+        self.cursor = self.connection.cursor()
+
+    @backoff.on_exception(
+        backoff.expo, (ConnectionRefusedError, OperationalError), max_tries=10
+    )
     @get_time
     def execute_sql_command(self, query: str) -> bool:
         """Execute command in database.
 
         Arguments:
             query: text query for execute
-
-        Returns:
-            list: dataset
         """
-        self.error = None
+
+        if not self.connection:
+            self.connect()
         try:
             self.cursor.execute(query)
-        except (
-                OperationalError,
-                DatabaseError
-        ) as err:
+        except DatabaseError as err:
             self.error = err
-        if self.error:
-            logging.error(self.error)
+            logger.error(err)
             return False
 
         return True
 
-    # @get_time
-    def save_table_to_vertica(self, table_name: str, dataset: list):
+    def truncate_table(self, table_name):
+        self.execute_sql_command('TRUNCATE TABLE {0};'.format(table_name))
+
+    @backoff.on_exception(
+        backoff.expo, (ConnectionRefusedError, OperationalError), max_tries=10
+    )
+    def save_table_to_vertica(self, table_name: str, dataset):
         """Load data to vertica.
 
         Arguments:
             table_name: name of table
             dataset: data for save
         """
+        if not self.connection:
+            self.connect()
 
         query = """INSERT INTO {0}({1}) VALUES ({2})""".format(
             table_name,
@@ -76,7 +88,7 @@ class VerticaSaver():
             self.sql_time += (datetime.now() - start_time)
         except DatabaseError as err:
             self.error = err
-            logging.error(err)
+            logger.error(err)
             return False
 
         self.connection.commit()

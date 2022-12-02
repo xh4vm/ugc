@@ -1,18 +1,18 @@
-from config.config import SETTINGS, sql_query
+from config.config import SETTINGS, SQL_QUERY
 from loguru import logger
 from vertica_worker.vertica_worker import VerticaSaver, conn_context_vertica
 
 
 def select_data(conn):
     vertica = VerticaSaver(conn)
-    for name, execute_sql_command in sql_query.items():
+    for name, execute_sql_command in SQL_QUERY.items():
         logger.info(name)
         vertica.execute_sql_command(execute_sql_command)
 
 
 def main():
     with (
-        conn_context_vertica(SETTINGS.vertica.dict()) as connection
+        conn_context_vertica(SETTINGS.VERTICA.dict()) as connection
     ):
         select_data(connection)
 

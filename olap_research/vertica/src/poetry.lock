@@ -1,4 +1,12 @@
 [[package]]
+name = "backoff"
+version = "2.2.1"
+description = "Function decoration for backoff and retry"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[[package]]
 name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
@@ -281,9 +289,13 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "709f8bfd0bf49fb633ec16cd03c2a157c59275e422c57618402e861dd4e2a54e"
+content-hash = "7d4ca5dd654946ec4eec43f93b96d7908aa74d8286594d9714ba5e360ca709ac"
 
 [metadata.files]
+backoff = [
+    {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
+    {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
+]
 cfgv = [
     {file = "cfgv-3.3.1-py2.py3-none-any.whl", hash = "sha256:c6a0883f3917a037485059700b9e75da2464e6c27051014ad85ba6aaa5884426"},
     {file = "cfgv-3.3.1.tar.gz", hash = "sha256:f5a830efb9ce7a445376bb66ec94c638a9787422f96264c98edc6bdeed8ab736"},
