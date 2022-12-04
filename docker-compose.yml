@@ -17,14 +17,14 @@ x-redis: &base_redis
     timeout: 10s
     retries: 5
 
-x-base-profile-clickhouse: &base-profile-clickhouse
-  profiles:
-    - clickhouse
-
 x-base-clickhouse-node: &base-clickhouse-node
-  image: yandex/clickhouse-server:21.3
+  image: yandex/clickhouse-server:22.1
   env_file: .env
-  <<: *base-profile-clickhouse
+  mem_limit: 1g
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
   depends_on:
     - zookeeper-clickhouse
 
@@ -82,7 +82,7 @@ services:
   zookeeper-kafka:
     <<: *base_service
     image: confluentinc/cp-zookeeper:7.3.0
-    hostname: zookeeper
+    hostname: zookeeper-kafka
     container_name: zookeeper-kafka
     profiles:
       - dev_ugc
@@ -175,16 +175,23 @@ services:
       PORT: 9021
 
   zookeeper-clickhouse:
-    image: bitnami/zookeeper:3.8.0
-    <<: *base-profile-clickhouse
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper-clickhouse
+    profiles:
+      - clickhouse
+      - dev_ugc
     environment:
-      ZOO_PORT_NUMBER: ${CH_ZOO_PORT_NUMBER}
-      ALLOW_ANONYMOUS_LOGIN: 'yes'
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     volumes:
       - ch_zoo_data:/bitnami/zookeeper
 
   clickhouse-node1:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node1
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
@@ -196,6 +203,10 @@ services:
 
   clickhouse-node2:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node2
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
@@ -207,6 +218,10 @@ services:
 
   clickhouse-node3:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node3
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
@@ -218,6 +233,10 @@ services:
 
   clickhouse-node4:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node4
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
