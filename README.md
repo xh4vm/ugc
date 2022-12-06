@@ -12,6 +12,7 @@
 В рамках данного модуля было проведено исследование OLAP хранилища (clickhouse и vertica). Сводные результаты можно найти в [директории](https://github.com/xh4vm/ugc/tree/main/olap_research). Результаты по каждому хранилищу можно найти в директориях:
 - [./olap_research/clickhouse](https://github.com/xh4vm/ugc/tree/main/olap_research/clickhouse)
 - [./olap_research/vertica](https://github.com/xh4vm/ugc/tree/main/olap_research/vertica)
+
 В рамках данного модуля в качестве OLAP хранилища выбран ClickHouse
 
 ## Запуск сервиса аналитики
