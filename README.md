@@ -30,4 +30,5 @@ make ugc
 #### API
 http://localhost:60666/api/openapi
 
-## Пример рабочего токена авторизации (примерно на 10 лет): "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicGVybWlzc2lvbnMiOnsiMDM3YWJkMDI2M2JlNTg2OWMzNzZjZjU5ODlhMTQ4YTAiOlsiR0VUIiwiUE9TVCJdfSwiZXhwIjoxNjcwOTI1MDg0LCJpYXQiOjE2Njk5MjUwODR9.MiR0CEaNXpTZfVk5-T67sWUNrhGpMTf8GNhbhfuBzyE"
+## Пример рабочего токена авторизации (примерно на 10 лет): 
+X-Authorization-Token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicGVybWlzc2lvbnMiOnsiMDM3YWJkMDI2M2JlNTg2OWMzNzZjZjU5ODlhMTQ4YTAiOlsiR0VUIiwiUE9TVCJdfSwiZXhwIjoxNjcwOTI1MDg0LCJpYXQiOjE2Njk5MjUwODR9.MiR0CEaNXpTZfVk5-T67sWUNrhGpMTf8GNhbhfuBzyE"
