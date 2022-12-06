@@ -45,9 +45,6 @@ class AccessService(BaseAccessService):
         return self._wrapper(status=False, message=PermissionError.ACCESS_ERROR)
 
     def _wrapper(
-        self,
-        status: bool,
-        message: str,
-        payload: Optional[dict[str, Any]] = None
+        self, status: bool, message: str, payload: Optional[dict[str, Any]] = None
     ) -> dict[Literal['is_accessible', 'message', 'payload'], Union[bool, str, dict[str, Any]]]:
         return {'is_accessible': status, 'message': message, 'payload': payload}

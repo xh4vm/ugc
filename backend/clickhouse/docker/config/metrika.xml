@@ -70,9 +70,11 @@
 
         <zookeeper>
             <node index="1">
-                <host>zookeeper-clickhouse</host>
+                <host from_env="CH_ZOO_HOST" />
                 <port from_env="CH_ZOO_PORT_NUMBER" />
             </node>
+            <session_timeout_ms>30000</session_timeout_ms>
+            <operation_timeout_ms>10000</operation_timeout_ms>
         </zookeeper>
 
         <macros>

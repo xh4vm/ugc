@@ -17,16 +17,23 @@ x-redis: &base_redis
     timeout: 10s
     retries: 5
 
-x-base-profile-clickhouse: &base-profile-clickhouse
-  profiles:
-    - clickhouse
-
 x-base-clickhouse-node: &base-clickhouse-node
-  image: yandex/clickhouse-server:21.3
+  <<: *base_service
+  image: yandex/clickhouse-server:22.1
   env_file: .env
-  <<: *base-profile-clickhouse
+  mem_limit: 1g
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
   depends_on:
     - zookeeper-clickhouse
+  healthcheck:
+    test: curl http://x-base-clickhouse-node:8123 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+    interval: 30s
+    timeout: 10s
+    retries: 5
+  
 
 x-base-kafka: &base_kafka
   <<: *base_service
@@ -82,15 +89,21 @@ services:
   zookeeper-kafka:
     <<: *base_service
     image: confluentinc/cp-zookeeper:7.3.0
-    hostname: zookeeper
+    hostname: zookeeper-kafka
     container_name: zookeeper-kafka
     profiles:
       - dev_ugc
     ports:
       - "2181:2181"
     environment:
+      ZOOKEEPER_ID: 1
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
   kafka01:
     <<: *base_kafka
@@ -175,54 +188,96 @@ services:
       PORT: 9021
 
   zookeeper-clickhouse:
-    image: bitnami/zookeeper:3.8.0
-    <<: *base-profile-clickhouse
+    <<: *base_service
+    image: confluentinc/cp-zookeeper:7.3.0
+    hostname: zookeeper-clickhouse
+    container_name: zookeeper-clickhouse
+    profiles:
+      - clickhouse
+      - dev_ugc
     environment:
-      ZOO_PORT_NUMBER: ${CH_ZOO_PORT_NUMBER}
-      ALLOW_ANONYMOUS_LOGIN: 'yes'
+      ZOOKEEPER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     volumes:
-      - ch_zoo_data:/bitnami/zookeeper
+      - clickhouse-zookeeper:/var/lib/zookeeper
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
+  clickhouse-initer:
+    <<: *base_service
+    build: ./backend/clickhouse_initer
+    container_name: clickhouse-initer
+    env_file: .env
+    profiles: 
+      - dev_ugc
+    volumes:
+      - ./backend/clickhouse_initer/mapping:/opt/clickhouse_initer/mapping:ro
+    depends_on:
+      clickhouse-node1:
+        condition: service_healthy
+      clickhouse-node2:
+        condition: service_healthy
+      clickhouse-node3:
+        condition: service_healthy
+      clickhouse-node4:
+        condition: service_healthy
+ 
   clickhouse-node1:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node1
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
       - ./backend/clickhouse/docker/config/node1:/etc/clickhouse-server
-      - ch_data_node1:/var/lib/clickhouse
     ports:
       - "8123:8123"
       - "9000:9000"
 
   clickhouse-node2:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node2
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
       - ./backend/clickhouse/docker/config/node2:/etc/clickhouse-server
-      - ch_data_node2:/var/lib/clickhouse
     ports:
       - "8124:8123"
       - "9001:9000"
 
   clickhouse-node3:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node3
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
       - ./backend/clickhouse/docker/config/node3:/etc/clickhouse-server
-      - ch_data_node3:/var/lib/clickhouse
     ports:
       - "8125:8123"
       - "9002:9000"
 
   clickhouse-node4:
     <<: *base-clickhouse-node
+    container_name: clickhouse-node4
+    profiles:
+      - clickhouse
+      - dev_ugc
     volumes:
       - ./backend/clickhouse/docker/initdb:/docker-entrypoint-initdb.d
       - ./backend/clickhouse/docker/config/metrika.xml:/etc/metrika.xml
       - ./backend/clickhouse/docker/config/node4:/etc/clickhouse-server
-      - ch_data_node4:/var/lib/clickhouse
     ports:
       - "8126:8123"
       - "9003:9000"
@@ -235,8 +290,4 @@ networks:
 
 volumes:
   etube-redis-data:
-  ch_zoo_data:
-  ch_data_node1:
-  ch_data_node2:
-  ch_data_node3:
-  ch_data_node4:
+  clickhouse-zookeeper:

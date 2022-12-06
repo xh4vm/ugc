@@ -10,11 +10,24 @@ packages = []
 python = "^3.10"
 
 [tool.poetry.group.build.dependencies]
+clickhouse-driver = "^0.2.5"
+loguru = "^0.6.0"
+backoff = "^2.2.1"
+pydantic = "^1.10.2"
+python-dotenv = "^0.21.0"
 
 
 [tool.poetry.group.pre-commit.dependencies]
 flake8 = ">=4.0.0"
 pre-commit = ">=2.19.0"
+
+
+[tool.poetry.group.clickhouse.dependencies]
+clickhouse-driver = "^0.2.5"
+loguru = "^0.6.0"
+backoff = "^2.2.1"
+pydantic = "^1.10.2"
+python-dotenv = "^0.21.0"
 
 [build-system]
 requires = ["poetry-core"]

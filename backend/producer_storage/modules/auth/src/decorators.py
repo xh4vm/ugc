@@ -1,6 +1,6 @@
 from functools import wraps
 from http import HTTPStatus
-from typing import Optional, Callable, Any
+from typing import Optional
 
 import modules.auth.src.services.access.grpc as grpc_client_connector
 import backoff
@@ -19,7 +19,7 @@ def access_required(permissions: dict[str, str], token_name: str = 'x_authorizat
 
             if token is not None and isinstance(token, str):
                 token = token.split()[1]
-            
+
             access_service = AccessService()
 
             for url, method in permissions.items():

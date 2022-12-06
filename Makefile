@@ -31,6 +31,9 @@ endef
 .PHONY: interactive build ugc services
 ugc: create-venv poetry-install-build-ugc build-dockers-ugc
 
+.PHONY: interactive build clickhouse research
+ch-research: create-venv poetry-install-clickhouse build-dockers-ch
+
 .PHONY: clean all docker images and pyc-files
 clean-all: clean-pyc clean-all-dockers
 
@@ -62,6 +65,11 @@ poetry-pre-commit-build:
 	$(call log,Poetry installing packages)
 	poetry install --only pre-commit
 
+.PHONY: potery install clickhouse research to venv
+poetry-install-clickhouse:
+	$(call log,Poetry installing packages)
+	poetry install --only clickhouse
+
 .PHONY: interactive build docker services
 build-dockers:
 	$(call log,Build containers)
@@ -89,16 +97,16 @@ clean-all-dockers:
 
 .PHONY: interactive build docker clickhouse services
 build-dockers-ch:
-	docker-compose --profile clickhouse up -d --build
+	docker-compose --profile clickhouse up --build
 
 .PHONY: upgrade clickhouse's database schema
 ch-db-upgrade:
-	python backend/clickhouse/src/db_upgrade.py
+	source venv/bin/activate; ./venv/bin/python3 backend/clickhouse/src/db_upgrade.py
 
 .PHONY: load fake-data into clickhouse
 ch-load:
-	python backend/clickhouse/src/load_data.py
+	source venv/bin/activate; ./venv/bin/python3 backend/clickhouse/src/load_data.py
 
 .PHONY: execute queries for clickhouse
 ch-benchmark:
-	python backend/clickhouse/src/benchmarks.py
+	source venv/bin/activate; ./venv/bin/python3 backend/clickhouse/src/benchmarks.py
