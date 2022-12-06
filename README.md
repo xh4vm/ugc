@@ -8,7 +8,13 @@
 
 Задания на спринт вы найдёте внутри тем.
 
-## Запуск сервиса авторизации
+## Исследование OLAP-хранилища
+В рамках данного модуля было проведено исследование OLAP хранилища (clickhouse и vertica). Сводные результаты можно найти в [директории](https://github.com/xh4vm/ugc/tree/main/olap_research). Результаты по каждому хранилищу можно найти в директориях:
+- [./olap_research/clickhouse](https://github.com/xh4vm/ugc/tree/main/olap_research/clickhouse)
+- [./olap_research/vertica](https://github.com/xh4vm/ugc/tree/main/olap_research/vertica)
+В рамках данного модуля в качестве OLAP хранилища выбран ClickHouse
+
+## Запуск сервиса аналитики
 ```
 # Установка файлов переменных окружения
 cp .env.example .env 
@@ -23,3 +29,5 @@ make ugc
 ## Документация
 #### API
 http://localhost:60666/api/openapi
+
+## Пример рабочего токена авторизации (примерно на 10 лет): "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicGVybWlzc2lvbnMiOnsiMDM3YWJkMDI2M2JlNTg2OWMzNzZjZjU5ODlhMTQ4YTAiOlsiR0VUIiwiUE9TVCJdfSwiZXhwIjoxNjcwOTI1MDg0LCJpYXQiOjE2Njk5MjUwODR9.MiR0CEaNXpTZfVk5-T67sWUNrhGpMTf8GNhbhfuBzyE"
