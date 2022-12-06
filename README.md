@@ -26,6 +26,9 @@ rm -rf ./backend/nginx/static && cp -r ./backend/nginx/static_defaults/ ./backen
 make ugc
 ```
 
+## Управление проектом 
+Осуществлялось в [notion](https://obtainable-stinger-44c.notion.site/1fb8cf0aecb348b5b56f03c59865be3a?v=605f36748e354f83b93182ffccffff16)
+
 ## Документация
 #### API
 http://localhost:60666/api/openapi
