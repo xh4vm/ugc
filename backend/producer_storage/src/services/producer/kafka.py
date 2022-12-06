@@ -1,5 +1,6 @@
 from confluent_kafka.serialization import Serializer
 from confluent_kafka.serializing_producer import SerializingProducer
+from aiokafka import AIOKafkaProducer
 from pydantic.main import ModelMetaclass
 
 from .base import BaseProducer
@@ -21,8 +22,8 @@ class KafkaProducer(BaseProducer):
             }
         )
 
-    async def produce(
-        self, topic: str, key: str = None, value: ModelMetaclass = None, partition: int = -1, timestamp=0
+    def produce(
+        self, topic: str, key: str = None, value: ModelMetaclass = None, partition: int = None, timestamp: int= None
     ) -> None:
 
         self.producer.produce(
