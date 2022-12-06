@@ -9,7 +9,7 @@ from src.core.config import CONFIG, service_logger
 
 def _on_delivery(err, msg) -> None:
     if err is not None:
-        service_logger.info(f'[ON DELIVERY] error: "{err}"; msg: "{msg.value()}"')
+        service_logger.info('[ON DELIVERY] error: "%s"; msg: "%s"', err, msg)
 
 
 class KafkaProducer(BaseProducer):
