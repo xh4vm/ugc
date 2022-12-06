@@ -10,7 +10,7 @@ class ClickhouseSettings(BaseSettings):
     @classmethod
     def parse_env_var(cls, field_name: str, raw_val: str) -> Any:
         if field_name.upper() == 'NODES':
-            return [x for x in raw_val.split(",")]
+            return [x for x in raw_val.split(',')]
         return cls.json_loads(raw_val)
 
     class Config:

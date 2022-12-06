@@ -1,7 +1,7 @@
-from typing import Any, Optional
+from typing import Optional
 
 import backoff
-from config.base import BACKOFF_CONFIG, ClickhouseSettings
+from config.base import BACKOFF_CONFIG
 from config.logger import logger
 from clickhouse_driver import Client as Clickhouse
 
@@ -47,9 +47,9 @@ class ClickhouseIniter:
 
         for command in schema.split(';'):
             command = command.strip()
-            
+
             if len(command) == 0:
                 continue
-             
+
             logger.info(f'[*] Command: "{command}"')
             self.conn.execute(command)

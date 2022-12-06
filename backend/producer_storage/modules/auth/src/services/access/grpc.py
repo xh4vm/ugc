@@ -1,5 +1,4 @@
-from modules.auth.src.messages.permission_pb2 import (AccessibleRequest,
-                                                     AccessibleResponse)
+from modules.auth.src.messages.permission_pb2 import AccessibleRequest, AccessibleResponse
 from modules.auth.src.messages.permission_pb2_grpc import PermissionStub
 from grpc import aio
 

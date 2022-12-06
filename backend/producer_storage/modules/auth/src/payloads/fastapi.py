@@ -16,7 +16,7 @@ class UserAccessRequired:
         if token is not None and isinstance(token, str):
             token_parts = token.split()
             token = token_parts[1] if len(token_parts) == 2 else None
-        
+
         access_service = AccessService()
 
         for url, method in self.permissions.items():

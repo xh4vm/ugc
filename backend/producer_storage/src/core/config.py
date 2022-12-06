@@ -28,7 +28,7 @@ class AppSettings(Settings):
 
 class KafkaTopicsSettings(Settings):
     MOVIE_FRAME: str
-    
+
     class Config:
         env_prefix = 'PRODUCER_STORAGE_KAFKA_TOPICS_'
 

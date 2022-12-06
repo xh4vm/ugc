@@ -21,7 +21,7 @@ async def movie_frame(
     _error_handler: None = Depends(error_handler),
     frame: MovieFrameDatagram = Body(title='MovieFrame', alias='movie_frame'),
     user_id: str = Depends(UserAccessRequired(permissions={URL: 'POST'})),
-    kafka_producer: KafkaProducer = Depends(Provide[ServiceContainer.kafka_producer])
+    kafka_producer: KafkaProducer = Depends(Provide[ServiceContainer.kafka_producer]),
 ) -> None:
 
     user_frame = MovieFrame(**frame.dict())
