@@ -6,6 +6,7 @@ from dependency_injector import providers
 from starlette_context.middleware import RawContextMiddleware
 from confluent_kafka.schema_registry import SchemaRegistryClient
 
+from .resources.avro_serializer import AvroSerializerResource
 from .resources.json_serializer import JSONSerializerResource
 from .resources.string_serializer import StringSerializerResource
 
@@ -19,7 +20,7 @@ from.models.movie import MovieFrame
 
 def register_di_containers():
     schema_registry = SchemaRegistryClient({'url': CONFIG.APP.SCHEMA_REGISTRY_URL})
-    movie_frame_value_serializer = providers.Resource(JSONSerializerResource, schema=MovieFrame,
+    movie_frame_value_serializer = providers.Resource(AvroSerializerResource, schema=MovieFrame.schema(),
         registry=schema_registry, to_dict=lambda obj, ctx: obj.dict())
     movie_frame_key_serializer = providers.Resource(StringSerializerResource, codec='utf-8')
 

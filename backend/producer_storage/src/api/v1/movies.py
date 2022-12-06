@@ -8,7 +8,7 @@ from src.services.producer.kafka import KafkaProducer
 from src.core.config import CONFIG
 from src.utils.error_handlers.auth import error_handler
 
-from src.models.movie import MovieFrame
+from src.models.movie import MovieFrameDatagram, MovieFrame
 
 
 router = APIRouter(prefix='/movie', tags=['Movies'])
@@ -19,10 +19,10 @@ URL = f'{CONFIG.APP.HOST}:{CONFIG.APP.PORT}{CONFIG.APP.API_PATH}/{CONFIG.APP.API
 @inject
 async def movie_frame(
     _error_handler: None = Depends(error_handler),
-    frame: MovieFrame = Body(title='MovieFrame', alias='movie_frame'),
-    sig: str = Body(title='Signature'),
+    frame: MovieFrameDatagram = Body(title='MovieFrame', alias='movie_frame'),
     user_id: str = Depends(UserAccessRequired(permissions={URL: 'POST'})),
     kafka_producer: KafkaProducer = Depends(Provide[ServiceContainer.kafka_producer])
 ) -> None:
 
-    await kafka_producer.produce(topic=CONFIG.KAFKA.TOPICS.MOVIE_FRAME, key=user_id, value=frame)
+    user_frame = MovieFrame(**frame.dict())
+    await kafka_producer.produce(topic=CONFIG.KAFKA.TOPICS.MOVIE_FRAME, key=user_id, value=user_frame)
