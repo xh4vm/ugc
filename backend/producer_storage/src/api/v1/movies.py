@@ -17,7 +17,7 @@ URL = f'{CONFIG.APP.HOST}:{CONFIG.APP.PORT}{CONFIG.APP.API_PATH}/{CONFIG.APP.API
 
 @router.post(path='/frame', name='Produce storage user data')
 @inject
-async def movie_frame(
+def movie_frame(
     _error_handler: None = Depends(error_handler),
     frame: MovieFrameDatagram = Body(title='MovieFrame', alias='movie_frame'),
     user_id: str = Depends(UserAccessRequired(permissions={URL: 'POST'})),
@@ -25,4 +25,4 @@ async def movie_frame(
 ) -> None:
 
     user_frame = MovieFrame(**frame.dict())
-    await kafka_producer.produce(topic=CONFIG.KAFKA.TOPICS.MOVIE_FRAME, key=user_id, value=user_frame)
+    kafka_producer.produce(topic=CONFIG.KAFKA.TOPICS.MOVIE_FRAME, key=user_id, value=user_frame)

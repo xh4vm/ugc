@@ -1,5 +1,6 @@
 from confluent_kafka.serialization import Serializer
 from confluent_kafka.serializing_producer import SerializingProducer
+from aiokafka import AIOKafkaProducer
 from pydantic.main import ModelMetaclass
 
 from .base import BaseProducer
@@ -8,7 +9,7 @@ from src.core.config import CONFIG, service_logger
 
 def _on_delivery(err, msg) -> None:
     if err is not None:
-        service_logger.info(f'[ON DELIVERY] error: "{err}"; msg: "{msg.value()}"')
+        service_logger.info('[ON DELIVERY] error: "%s"; msg: "%s"', err, msg)
 
 
 class KafkaProducer(BaseProducer):
@@ -21,8 +22,8 @@ class KafkaProducer(BaseProducer):
             }
         )
 
-    async def produce(
-        self, topic: str, key: str = None, value: ModelMetaclass = None, partition: int = -1, timestamp=0
+    def produce(
+        self, topic: str, key: str = None, value: ModelMetaclass = None, partition: int = None, timestamp: int= None
     ) -> None:
 
         self.producer.produce(

@@ -29,7 +29,7 @@ class ClickhouseIniter:
 
     @backoff.on_exception(**BACKOFF_CONFIG, logger=logger)
     def _reconnection(self) -> Clickhouse:
-        logger.info(f'Reconnection clickhouse node "{self._host}:{self._port}" ...')
+        logger.info('Reconnection clickhouse node "%s:%d" ...', self._host, self._port)
 
         if self._conn is not None:
             logger.info('Closing already exists clickhouse connector...')
@@ -39,8 +39,8 @@ class ClickhouseIniter:
 
     @backoff.on_exception(**BACKOFF_CONFIG, logger=logger)
     def create(self, ddl_file: str):
-        logger.info(f'[*] Initialized clickhouse node: "{self._host}:{self._port}"')
-        logger.info(f'[*] Reading schema from file: "{ddl_file}"')
+        logger.info('[*] Initialized clickhouse node: "%s:%d"', self._host, self._port)
+        logger.info('[*] Reading schema from file: "%s"', ddl_file)
 
         with open(ddl_file, 'r') as fd:
             schema = fd.read()
@@ -51,5 +51,5 @@ class ClickhouseIniter:
             if len(command) == 0:
                 continue
 
-            logger.info(f'[*] Command: "{command}"')
+            logger.info('[*] Command: "%s"', command)
             self.conn.execute(command)
