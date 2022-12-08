@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from adapters.base import BaseDBMigrator
+from olap_research.clickhouse.src.adapters.base import BaseDBMigrator
 
 
 @dataclass
@@ -10,5 +10,3 @@ class DBService:
     def db_upgrade(self):
         for migrator in self.db_migrators:
             migrator.db_upgrade()
-
-

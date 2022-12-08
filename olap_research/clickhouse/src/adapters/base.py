@@ -6,7 +6,7 @@ from typing import Any
 import backoff
 from clickhouse_driver.errors import NetworkError
 
-from adapters.enums import DBDialects
+from olap_research.clickhouse.src.adapters.enums import DBDialects
 
 
 @dataclass

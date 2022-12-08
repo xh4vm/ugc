@@ -2,9 +2,8 @@ import datetime
 import json
 from pathlib import Path
 
-from loguru import logger
-
 from adapters.clickhouse.client import ClickHouseClient
+from loguru import logger
 from settings import olap_research_settings
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent

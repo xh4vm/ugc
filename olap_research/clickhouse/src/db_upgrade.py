@@ -1,6 +1,7 @@
-from adapters.clickhouse.client import ClickHouseClient, ClickHouseMigrator
-from services import DBService
-from settings import ch_settings
+from olap_research.clickhouse.src.adapters.clickhouse.client import (
+    ClickHouseClient, ClickHouseMigrator)
+from olap_research.clickhouse.src.services import DBService
+from olap_research.clickhouse.src.settings import ch_settings
 
 node_prefix = ch_settings.CH_NODE_PREFIX
 node_ports = ch_settings.CH_NODE_PORTS

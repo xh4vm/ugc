@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from adapters.base import Model, sql_types
+from olap_research.clickhouse.src.adapters.base import Model, sql_types
 
 
 @dataclass

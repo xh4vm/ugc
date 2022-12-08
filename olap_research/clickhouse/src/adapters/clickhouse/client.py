@@ -6,9 +6,10 @@ from typing import Type
 from clickhouse_driver import Client
 from loguru import logger
 
-from adapters import models
-from adapters.base import Model, BaseDBClient, BaseDBMigrator
-from adapters.enums import DBDialects
+from olap_research.clickhouse.src.adapters import models
+from olap_research.clickhouse.src.adapters.base import (BaseDBClient,
+                                                        BaseDBMigrator, Model)
+from olap_research.clickhouse.src.adapters.enums import DBDialects
 
 MODELS_MODULE_NAME = models.__name__
 

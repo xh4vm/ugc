@@ -110,3 +110,13 @@ ch-load:
 .PHONY: execute queries for clickhouse
 ch-benchmark:
 	source venv/bin/activate; ./venv/bin/python3 backend/clickhouse/src/benchmarks.py
+
+lint-mypy:
+	@mypy -p backend -p olap_research --html-report ./dist/reports/mypy
+
+lint-flake8:
+	@flake8 --format=html --htmldir=./dist/reports/flake8
+
+lint:
+	make lint-mypy -i
+	make lint-flake8 - i

@@ -34,7 +34,7 @@ class CHSettings(BaseSettings):
         def parse_env_var(cls, field_name: str, raw_val: str) -> Any:
             if field_name.upper() == "CH_NODE_PORTS":
                 return [int(x) for x in raw_val.split(",")]
-            return cls.json_loads(raw_val)
+            return cls.json_loads(raw_val)  # type: ignore  # noqa
 
 
 ch_settings = CHSettings()
